@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
+    <!--
+        根节点的配置顺序：
+            renderer
+            appender
+            plugin
+            logger
+            category
+            root
+            loggerfactory
+            categoryfactory
+    -->
+    <!-- ========================================================================================= -->
+    <!--
+        org.apache.log4j.ConsoleAppender            控制台输出
+        org.apache.log4j.FileAppender               文件日志输出
+        org.apache.log4j.DailyRollingFileAppender   每个时间段产生一个日志文件
+        org.apache.log4j.RollingFileAppender        文件大小到达指定尺寸的时候产生一个新的文件
+        org.apache.log4j.WriterAppender             将日志信息以流格式发送到任意指定的地方
+        org.apache.log4j.net.SMTPAppender           发邮件输出日志
+        org.apache.log4j.net.SocketAppender         Socket日志
+        org.apache.log4j.nt.NTEventLogAppender      Window NT日志
+        org.apache.log4j.net.SyslogAppender
+        org.apache.log4j.net.JMSAppender
+        org.apache.log4j.AsyncAppender
+        org.apache.log4j.varia.NullAppender
+        org.apache.log4j.jdbc.JDBCAppender
+    -->
+    <!-- ========================================================================================= -->
+    <!--
+        控制台输出：org.apache.log4j.ConsoleAppender
+            Threshold=WARN      指定日志消息的输出最低层次。
+            ImmediateFlush=true 默认值是 true,意谓着所有的消息都会被立即输出。
+            Target=System.err   默认情况下是：System.out,指定输出控制台
+    -->
+    <appender name="Console" class="org.apache.log4j.ConsoleAppender">
+        <!--DEBUG，INFO，WARN，ERROR，FATAL,-->
+        <param name="Threshold" value="ALL"></param>
+        <param name="ImmediateFlush" value="true"></param>
+        <param name="Target" value="System.out"></param>
+        <layout class="org.apache.log4j.TTCCLayout" />
+    </appender>
+    <!-- ========================================================================================= -->
+    <!--
+        文件日志输出：org.apache.log4j.FileAppender
+            Threshold=WARN      指定日志消息的输出最低层次。
+            ImmediateFlush=true 默认值是 true,意谓着所有的消息都会被立即输出。
+            File=mylog.txt      指定消息输出到 mylog.txt 文件。
+            Append=false        默认值是 true,即将消息增加到指定文件中，false 指将消息覆盖指定的文件内容。
+    -->
+    <appender name="File" class="org.apache.log4j.FileAppender">
+        <param name="Threshold" value="ALL"></param>
+        <param name="ImmediateFlush" value="true"></param>
+        <param name="File" value="F:\\FileAppender.txt"></param>
+        <param name="Append" value="false"></param>
+        <layout class="org.apache.log4j.TTCCLayout" />
+    </appender>
+    <!-- ========================================================================================= -->
+    <!--
+        每个时间段产生一个日志文件：org.apache.log4j.DailyRollingFileAppender
+        Threshold=WARN          指定日志消息的输出最低层次。
+        ImmediateFlush=true     默认值是 true,意谓着所有的消息都会被立即输出。
+        File=mylog.txt          指定消息输出到 mylog.txt 文件。
+        Append=false            默认值是 true,即将消息增加到指定文件中，false 指将消息覆盖指定的文件内容。
+        DatePattern=.yyyy-ww    每周滚动一次文件，即每周产生一个新的文件。
+        当然也可以指定按月、周、天、时和分。即对应的格式如下：
+            .yyyy-MM            每月
+            .yyyy-ww            每周
+            .yyyy-MM-dd         每天
+            .yyyy-MM-dd-a       每天两次
+            .yyyy-MM-dd-HH      每小时
+            .yyyy-MM-dd-HH-mm   每分钟
+    -->
+    <appender name="DailyRollingFile" class="org.apache.log4j.DailyRollingFileAppender">
+        <param name="Threshold" value="ALL"></param>
+        <param name="ImmediateFlush" value="true"></param>
+        <param name="File" value="F:\\DailyRollingFileAppender.txt"></param>
+        <param name="Append" value="false"></param>
+        <param name="DatePattern" value=".yyyy-MM-dd-HH-mm"></param>
+        <layout class="org.apache.log4j.TTCCLayout" />
+    </appender>
+    <!-- ========================================================================================= -->
+    <!--
+        文件大小到达指定尺寸的时候产生一个新的文件：org.apache.log4j.RollingFileAppender
+        Threshold=WARN      指定日志消息的输出最低层次。
+        ImmediateFlush=true 默认值是 true,意谓着所有的消息都会被立即输出。
+        File=mylog.txt      指定消息输出到 mylog.txt 文件。
+        Append=false        默认值是 true,即将消息增加到指定文件中，false 指将消息覆盖指定的文件内容。
+        MaxFileSize=100KB   后缀可以是 KB, MB  或者是  GB.  在日志文件到达该大小时，将会自动滚动，即将原来的内容移到 mylog.log.1 文件。
+        MaxBackupIndex=2    指定可以产生的滚动文件的最大数。
+    -->
+    <appender name="RollingFile" class="org.apache.log4j.RollingFileAppender">
+        <param name="Threshold" value="ALL"></param>
+        <param name="ImmediateFlush" value="true"></param>
+        <param name="File" value="F:\\RollingFileAppender.txt"></param>
+        <param name="Append" value="false"></param>
+        <param name="MaxFileSize" value="1KB"></param>
+        <param name="MaxBackupIndex" value="3"></param>
+        <layout class="org.apache.log4j.TTCCLayout" />
+    </appender>
+    <!-- ========================================================================================= -->
+    <!-- ========================================================================================= -->
+    <!--
+        org.apache.log4j.HTMLLayout     以HTML表格形式布局
+        org.apache.log4j.PatternLayout  可以灵活地指定布局模式
+        org.apache.log4j.xml.XMLLayout  XML文件布局日志
+        org.apache.log4j.SimpleLayout   包含日志信息的级别和信息字符串
+        org.apache.log4j.TTCCLayout     包含日志产生的时间、线程、类别等等信息
+    -->
+    <!-- ========================================================================================= -->
+    <!--
+        以HTML表格形式布局：org.apache.log4j.HTMLLayout
+            LocationInfo=true   默认值是false,输出java文件名称和行号
+            Title=日志信息      默认值是"Log4J Log Messages"
+    -->
+    <appender name="HTML" class="org.apache.log4j.ConsoleAppender">
+        <layout class="org.apache.log4j.HTMLLayout">
+            <param name="LocationInfo" value="true"></param>
+            <param name="Title" value="日志信息"></param>
+        </layout>
+    </appender>
+    <!-- ========================================================================================= -->
+    <!--
+        可以灵活地指定布局模式：org.apache.log4j.PatternLayout
+            ConversionPattern=%m%n	指定怎样格式化指定的消息，如：%-4r %-5p %d{yyyy-MM-dd HH:mm:ssS} %c %m%n
+        Log4J采用类似C语言中的printf函数的打印格式格式化日志信息，打印参数如下：
+            -X号	X信息输出时左对齐；
+            %p		输出日志信息优先级，即 DEBUG，INFO，WARN，ERROR，FATAL,
+            %d		输出日志时间点的日期或时间，默认格式为ISO8601，也可以在其后指定格式，比如：%d{yyy MMM dd HH:mm:ss,SSS}
+            %r		输出自应用启动到输出该 log 信息耗费的毫秒数
+            %c		输出日志信息所属的类目，配置文件中的名字，通常就是所在类的全名（若使用 rootLogger）
+            %t		输出产生该日志事件的线程名
+            %l		输出日志事件的发生位置，相当于%C.%M(%F:%L)的组合,包括类目名、发生的线程，以及行数。举例：Testlog4.main(TestLog4.java:10)
+            %x		输出和当前线程相关联的 NDC(嵌套诊断环境)，尤其用到像 java servlets 这样的多客户多线程的应用中。
+            %%		输出一个"%"字符
+            %F		输出日志消息产生时所在的文件名称
+            %L		输出代码中的行号
+            %m		输出代码中指定的消息,产生的日志具体信息
+            %n		输出一个回车换行符，Windows 平台为"\r\n"，Unix 平台为"\n"输出日志信息换行
+            %M		输出日志信息所属的方法
+        可以在%与模式字符之间加上修饰符来控制其最小宽度、最大宽度、和文本的对齐方式。如：
+            %20c    指定输出 category 的名称，最小的宽度是 20，如果 category 的名称小于 20 的话，默认的情况下右对齐。
+            %-20c	指定输出 category 的名称，最小的宽度是 20，如果 category 的名称小于 20 的话，"-"号指定左对齐。
+            %.30c	指定输出 category 的名称，最大的宽度是 30，如果 category 的名称大于 30 的话，就会将左边多出的字符截掉，但小于 30 的话也不会有空格。
+            %20.30c	如果 category 的名称小于 20 就补空格，并且右对齐，如果其名称长于 30 字符，就从左边交远销出的字符截掉
+    -->
+    <appender name="Pattern" class="org.apache.log4j.ConsoleAppender">
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="级别:[%-6p] 时间:[%d{yyy-MMM-dd HH:mm:ss,SSS}] %-50l %m%n"></param>
+        </layout>
+    </appender>
+    <!-- ========================================================================================= -->
+    <!--
+        XML文件布局日志：org.apache.log4j.xml.XMLLayout
+            LocationInfo=true		默认值是 false,输出 java 文件和行号
+    -->
+    <appender name="XML" class="org.apache.log4j.ConsoleAppender">
+        <layout class="org.apache.log4j.xml.XMLLayout">
+            <param name="LocationInfo" value="true"></param>
+        </layout>
+    </appender>
+    <!-- ========================================================================================= -->
+    <!-- ========================================================================================= -->
+    <logger name="ConsoleLog" additivity="false">
+        <level value="WARN" />
+        <appender-ref ref="Console" />
+    </logger>
+    <logger name="FileLog" additivity="false">
+        <level value="WARN" />
+        <appender-ref ref="File" />
+    </logger>
+    <logger name="DailyRollingFileLog" additivity="false">
+        <level value="WARN" />
+        <appender-ref ref="DailyRollingFile" />
+    </logger>
+    <logger name="RollingFileLog" additivity="false">
+        <level value="WARN" />
+        <appender-ref ref="RollingFile" />
+    </logger>
+    <logger name="HTMLLog" additivity="false">
+        <level value="WARN" />
+        <appender-ref ref="HTML" />
+    </logger>
+    <logger name="PatternLog" additivity="false">
+        <level value="WARN" />
+        <appender-ref ref="Pattern" />
+    </logger>
+    <logger name="XMLLog" additivity="false">
+        <level value="WARN" />
+        <appender-ref ref="XML" />
+    </logger>
+    <!-- ========================================================================================= -->
+    <!--
+        优先级：ALL < DEBUG < INFO <WARN < ERROR < FATAL < OFF
+    -->
+    <root>
+        <priority value="ALL" />
+        <appender-ref ref="Console" />
+    </root>
+</log4j:configuration>

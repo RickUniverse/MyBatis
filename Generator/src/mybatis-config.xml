@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+
+    <!--
+    配置的顺序必须为：
+        properties?,settings?,typeAliases?,typeHandlers?,
+            >objectFactory?,objectWrapperFactory?,reflectorFactory?,plugins?
+            >,environments?,databaseIdProvider?,mappers?
+    -->
+
+    <!--
+        1,properties 引入外部文件：
+            resource：引入类路径下文件
+            url：引入网络或磁盘中
+    -->
+    <properties resource="dbconfig.properties"/>
+
+    <!--
+        2,settings：用来设置很多重要的属性
+    -->
+    <settings>
+        <setting name="mapUnderscoreToCamelCase" value="true"/>
+        <!--全局配置方式设置-->
+        <!--<setting name="jdbcType" value="NULL"/>-->
+        <!--开启懒加载（延迟加载）-->
+        <setting name="lazyLoadingEnabled" value="true"/>
+        <setting name="aggressiveLazyLoading" value="false"/>
+        <setting name="cacheEnabled" value="true"/>
+    </settings>
+
+    <!--
+        3,typeAliases: 为类其全类名，不区分大小写
+    -->
+    <typeAliases>
+        <!--<typeAlias type="com.mybatis.entities.Employee" alias="employee"/>-->
+        <!--批量起别名-->
+        <package name="com.mybatis.entities"/>
+    </typeAliases>
+
+    <environments default="development">
+        <!--测试环境-->
+        <environment id="test">
+            <!--事务管理器-->
+            <transactionManager type="JDBC"/>
+            <!--POOLED 使用数据库连接池-->
+            <dataSource type="POOLED">
+                <property name="driver" value="${orcl.driver}"/>
+                <property name="url" value="${orcl.url}"/>
+                <property name="username" value="${orcl.username}"/>
+                <property name="password" value="${orcl.password}"/>
+            </dataSource>
+        </environment>
+
+        <environment id="development">
+            <transactionManager type="JDBC"/>
+            <dataSource type="POOLED">
+                <property name="driver" value="${jdbc.driver}"/>
+                <property name="url" value="${jdbc.url}"/>
+                <property name="username" value="${jdbc.username}"/>
+                <property name="password" value="${jdbc.password}"/>
+            </dataSource>
+        </environment>
+    </environments>
+    <!--
+        4,支持多数据库厂商
+    -->
+    <databaseIdProvider type="DB_VENDOR">
+        <!--为不同数据库厂商起别名-->
+        <property name="SQL Server" value="sqlserver" />
+        <property name="MySQL" value="mysql" />
+        <property name="DB2" value="db2" />
+        <property name="Oracle" value="oracle" />
+    </databaseIdProvider>
+    <mappers>
+        <!--需要将配置的映射xml配置到这里
+            resource：类工程目录下，引用配置文件
+            url: 磁盘或网路，引用配置文件
+            class: 映射接口,需要在同一个包下,使用注解的映射可以用，不需要xml的情况下，否xml和接口则必须在一个包内
+        -->
+        <!--<mapper resource="EmployeeMapper.xml"/>-->
+        <!--<mapper class="com.mybatis.dao.EmployeeMapperAnnotation"/>-->
+        <!--
+            package: 批量引用，必须在同一个包路径，注解不需要
+        -->
+        <package name="org.generator.dao"/>
+    </mappers>
+</configuration>

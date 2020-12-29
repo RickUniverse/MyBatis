@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mybatis.dao.EmployeeMapperPlus">
+
+    <!--
+        resultMap：自定义映射规则,开启驼峰命名不在有效
+        id：唯一标识
+        type：返回类型
+    -->
+    <resultMap id="MyEmp" type="com.mybatis.entities.Employee">
+        <!--
+            id:设置主键列，指明明确的主键列，mybatis有优化
+            column：数据表对应的字段
+            property：javaBean对应的字段
+        -->
+        <id column="id" property="id"/>
+        <!--如果没有指明result，mybatis会自动封装，为了利于维护习惯于全部封装上-->
+        <result column="last_name" property="lastName"/>
+        <result column="gender" property="gender"/>
+        <result column="email" property="email"/>
+        <!--使用鉴别器
+            如果性别为男生（1），则不加载部门信息，并将last_name列的值赋给email
+            如果是女生（0），则加载部门信息
+        -->
+        <discriminator javaType="string" column="gender">
+            <case value="0" resultType="employee">
+                <association property="department"
+                             column="dept_id"
+                             select="com.mybatis.dao.DepartmentMapper.getDepartmentById"/>
+            </case>
+            <!-- resultType必须指定 -->
+            <case value="1" resultType="employee">
+                <!--重新定义规则-->
+                <id column="id" property="id"/>
+                <result column="last_name" property="lastName"/>
+                <result column="last_name" property="email"/><!-- 并将last_name列的值赋给email -->
+                <result column="gender" property="gender"/>
+            </case>
+        </discriminator>
+    </resultMap>
+
+    <!--Employee getEmployeeById(Integer id);-->
+    <select id="getEmployeeById" resultMap="MyEmp">
+        select * from tb_employee where id=#{id}
+    </select>
+
+
+    <!--级联属性映射
+        Bean：private Department department;
+        数据库字段：  primary: [eid did]
+                    tb_employee[(id)  last_name  gender  email   dept_id]
+                    tb_department:[(id)  dept_name]
+    -->
+    <resultMap id="employeeAndDepartment" type="employee">
+        <id column="eid" property="id"/>
+        <result column="last_name" property="lastName"/>
+        <result column="gender" property="gender"/>
+        <result column="email" property="email"/>
+        <result column="did" property="department.id"/><!--级联属性-->
+        <result column="dept_name" property="department.deptName"/>
+    </resultMap>
+    <resultMap id="employeeAndDepartment2" type="employee">
+        <id column="eid" property="id"/>
+        <result column="last_name" property="lastName"/>
+        <result column="gender" property="gender"/>
+        <result column="email" property="email"/>
+        <!-- javaType必须指定！ -->
+        <association property="department" javaType="com.mybatis.entities.Department">
+            <id column="did" property="id"/>
+            <result column="dept_name" property="deptName"/>
+        </association>
+    </resultMap>
+    <!--Employee getEmployeeAndDepartmentById(Integer id);-->
+    <select id="getEmployeeAndDepartmentById" resultMap="employeeAndDepartment2">
+        SELECT e.`id` eid, d.`id` did, e.*, d.* FROM tb_employee e, tb_department d
+        WHERE e.`dept_id` = d.`id` AND e.`id` = 1
+    </select>
+
+
+    <!--
+        分步查询
+           emp:  id  last_name  gender  email   dept_id
+           dep:  id  dept_name
+
+            private Integer id;
+            private String lastName;
+            private int gender;
+            private String email;
+            private Department department;
+    -->
+    <resultMap id="stepSelect" type="employee">
+        <id column="id" property="id"/>
+        <result column="last_name" property="lastName"/>
+        <result column="gender" property="gender"/>
+        <result column="email" property="email"/>
+        <!--
+            property：bean关联的department
+            column：将那个值传递给select的查询条件
+            select：department的查询条件
+        -->
+        <association property="department"
+                     column="dept_id"
+                     select="com.mybatis.dao.DepartmentMapper.getDepartmentById"/>
+    </resultMap>
+    <!--Employee getEmployeeAndDepartmentByIdStep(Integer id);-->
+    <select id="getEmployeeAndDepartmentByIdStep" resultMap="stepSelect">
+        SELECT * FROM tb_employee WHERE id = #{id}
+    </select>
+
+    <!--======按照部门查询员工=======-->
+    <!--List<Employee> getEmployeeByDeptId(Integer id);-->
+    <select id="getEmployeeByDeptId" resultType="employee">
+        SELECT * FROM tb_employee WHERE dept_id = #{id}
+    </select>
+
+
+    <!--List<Employee> getEmployees();-->
+    <!--获取所有的-->
+    <select id="getEmployees" resultType="employee">
+        SELECT * FROM tb_employee
+    </select>
+
+</mapper>

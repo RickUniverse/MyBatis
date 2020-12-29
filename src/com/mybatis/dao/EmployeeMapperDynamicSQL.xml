@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mybatis.dao.EmployeeMapperDynamicSQL">
+
+    <!--
+    private Integer id;
+    private String lastName;
+    private int gender;
+    private String email;
+    private Department department;
+    -->
+    <!--List<Employee> queryConditionWhereEmpsByEmp(Employee employee);-->
+    <select id="queryConditionWhereEmpsByEmp" resultType="com.mybatis.entities.Employee">
+        SELECT * FROM tb_employee e
+        <where>
+        <if test="id != null">
+            e.`id` = #{id}
+        </if>
+        <if test="email != null and email != ''">
+            AND e.`email` = #{email}
+        </if>
+        <if test="gender == 1 or gender == 0">
+            AND e.`gender` = #{gender}
+        </if>
+        <if test="lastName != null and lastName.trim() != ''">
+            AND e.`last_name` LIKE #{lastName}
+        </if>
+        </where>
+
+    </select>
+
+    <!--List<Employee> queryConditionChooseEmpsByEmp(Employee employee);-->
+    <select id="queryConditionChooseEmpsByEmp" resultType="com.mybatis.entities.Employee">
+        SELECT * FROM tb_employee
+        <where>
+            <choose>
+                <when test="id!=null">
+                    id = #{id}
+                </when>
+                <when test="email!=null">
+                    email = #{email}
+                </when>
+                <otherwise>
+                    1=1
+                </otherwise>
+            </choose>
+        </where>
+    </select>
+
+
+    <!--boolean updateConditionSetAndTrim(Employee employee);-->
+    <update id="updateConditionSetAndTrim">
+        update tb_employee
+        <!--<set>
+            <if test="email!=null">
+                email = #{email},
+            </if>
+            <if test="lastName!=null">
+                last_name = #{lastName},
+            </if>
+            <if test="gender!=-1">
+                gender = #{gender}
+            </if>
+        </set>-->
+        <trim prefix="set" suffixOverrides="," suffix="where id = #{id}" prefixOverrides="and">
+            <if test="email!=null">
+                email = #{email},
+            </if>
+            <if test="lastName!=null">
+                last_name = #{lastName},
+            </if>
+            <if test="gender!=-1">
+                gender = #{gender}
+            </if>
+        </trim>
+    </update>
+
+    <!--List<Employee> queryConditionForEach(@Param("ids") List<Integer> ids);-->
+    <!--
+        collection:要遍历的集合
+        index:遍历list时，就是list的下标，
+                遍历map时就是map的key
+        item：遍历出的元素放在item_id中,
+                遍历map时就是key对应的值
+        separator：拼接符
+        open：遍历结束的整体开始
+        close：遍历结束后的整体结束
+    -->
+    <select id="queryConditionForEach" resultType="employee">
+        <foreach collection="ids"
+                 index="i"
+                 item="item_id"
+                 separator=","
+                 open="SELECT * FROM tb_employee Where id in("
+                 close=")">
+            #{item_id}
+        </foreach>
+    </select>
+
+
+    <!--long batchInsert(@Param("emps") List<Employee> epms);-->
+    <!--
+        批量插入:方式一
+    -->
+    <!--<insert id="batchInsert">
+        <foreach collection="emps"
+                 separator=","
+                 item="emp"
+                 open="INSERT INTO tb_employee(last_name, gender, email, dept_id) VALUES"
+                 close="">
+            (#{emp.lastName}, #{emp.gender}, #{emp.email}, #{emp.department.id})
+        </foreach>
+    </insert>-->
+    <!--
+        批量插入:方式二
+        include:引入可从用的sql片段
+    -->
+    <insert id="batchInsert">
+        <foreach collection="emps"
+                 separator=";"
+                 item="emp">
+            INSERT INTO tb_employee(<include refid="insertEmp">
+                                        <property name="email" value="email"/>
+                                    </include>) VALUES
+            (#{emp.lastName}, #{emp.gender}, #{emp.email}, #{emp.department.id})
+        </foreach>
+    </insert>
+    <!--
+        oracle数据库批量插入
+           方式1：begin
+                       insert into EMPLOYEE_TABLE(ID,NAME,EMAIL,DEPT_ID)
+                       values(employees_seq.nextval,'name','email',1);
+                end;
+           方式2：使用中间表
+           insert into EMPLOYEE_TABLE(ID,NAME,EMAIL,DEPT_ID)
+                   select employees_seq.nextval, ENAME, EEMAIL, EDEPT_ID from(
+                          select 'name' ENAME, 'email' EEMAIL, 1 EDEPT_ID from dual
+                          union
+                          select 'name' ENAME, 'email' EEMAIL, 1 EDEPT_ID from dual
+                   )
+    -->
+
+    <!--======抽取可重用的SQL片段======-->
+    <!--
+        ${email} : 是include内设置的参数
+    -->
+    <sql id="insertEmp">
+        <if test="_databaseId=='mysql'">
+            last_name, gender, ${email}, dept_id
+        </if>
+        <if test="_databaseId=='oracle'">
+            ID,${name},EMAIL,DEPT_ID
+        </if>
+    </sql>
+
+    <!--long batchInsert(@Param("emps") List<Employee> epms);-->
+    <insert id="batchInsert" databaseId="oracle">
+        <!-- 因为使用的是begin end 所以返回 -1  -->
+        <foreach collection="emps"
+                 item="emp"
+                 open="begin"
+                 close="end;">
+            insert into EMPLOYEE_TABLE(ID,NAME,EMAIL,DEPT_ID)
+            values(employees_seq.nextval,#{emp.lastName},#{emp.email},#{emp.department.id});
+        </foreach>
+        <!--insert into EMPLOYEE_TABLE(<include refid="insertEmp">
+                                        <property name="name" value="NAME"/>
+                                    </include>)
+        <foreach collection="emps"
+                 item="emp"
+                 separator="union"
+                 open="select employees_seq.nextval, ENAME, EEMAIL, EDEPT_ID from("
+                 close=")">
+            select #{emp.lastName} ENAME, #{emp.email} EEMAIL, #{emp.department.id} EDEPT_ID from dual
+        </foreach>-->
+    </insert>
+    
+    
+    <!--======内置参数======-->
+    <!--List<Employee> queryConditionInnerParam(Employee employee);-->
+    <select id="queryConditionInnerParam" resultType="employee">
+        <if test="_parameter!=null">
+            <bind name="_lastName" value="'%' + _parameter.lastName + '%'"/>
+        </if>
+        <if test="_databaseId=='mysql'">
+            select * from tb_employee
+            <if test="_parameter!=null">
+                where last_name like #{_lastName}
+            </if>
+        </if>
+        <if test="_databaseId=='oracle'">
+            select * from EMPLOYEE_TABLE
+            <if test="_parameter!=null">
+                where NAME = #{_parameter.lastName}
+            </if>
+        </if>
+    </select>
+
+</mapper>

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mybatis.dao.DepartmentMapper">
+    <!--开启二级缓存
+        eviction:缓存回收策略，默认是LRU
+        flushInterval：刷新间隔，多长时间清空一次，默认是不清空，单位是毫秒
+        readOnly：是否只读
+        size：缓存中可以存储多少个对象
+    -->
+    <!--<cache eviction="FIFO" flushInterval="60000" readOnly="false" size="1024"/>-->
+    <!-- 引用该缓存区内的缓存方式 -->
+    <cache-ref namespace="com.mybatis.dao.EmployeeMapper"/>
+
+    <!--Department getDepartmentById(Integer id);-->
+    <select id="getDepartmentById" resultType="com.mybatis.entities.Department">
+        SELECT * FROM tb_department WHERE id = #{id}
+    </select>
+
+
+    <!--
+        获取department关联的所有emplease
+        字段：did     eid   ||   id  dept_name    ||  id  last_name  gender  email   dept_id
+        private Integer id;
+        private String deptName;
+        private List<Employee> employees;
+    -->
+    <resultMap id="DeptAndEmps" type="com.mybatis.entities.Department">
+        <id column="did" property="id"/>
+        <result column="dept_name" property="deptName"/>
+        <!-- ofType指定集合中元素的类型 -->
+        <collection property="employees" ofType="com.mybatis.entities.Employee">
+            <!--集合中元素关联的字段-->
+            <id column="eid" property="id"/>
+            <result column="last_name" property="lastName"/>
+            <result column="gender" property="gender"/>
+            <result column="email" property="email"/>
+        </collection>
+    </resultMap>
+    <!--Department getDepartmentByIdPuls(Integer id);-->
+    <select id="getDepartmentByIdPuls" resultMap="DeptAndEmps">
+        SELECT d.id did, e.id eid, d.*, e.* FROM tb_department d
+        LEFT JOIN tb_employee e
+        ON d.`id` = e.`dept_id`
+        WHERE d.`id` = #{id}
+    </select>
+
+    <!--======分步查询======-->
+    <resultMap id="stepDept" type="com.mybatis.entities.Department">
+        <id column="id" property="id"/>
+        <result column="dept_name" property="deptName"/>
+        <!--
+            column="{id=id}":讲这个字段封装为map传递过去
+                封装多个使用 , 逗号隔开{key=column,key2=column2}
+        -->
+        <association property="employees"
+                     column="{id=id}"
+                     select="com.mybatis.dao.EmployeeMapperPlus.getEmployeeByDeptId"
+                     fetchType="lazy"/>
+    </resultMap>
+    <!--Department getDepartmentByIdPulsStep(Integer id);-->
+    <select id="getDepartmentByIdPulsStep" resultMap="stepDept">
+        SELECT * FROM tb_department WHERE id = #{id}
+    </select>
+
+</mapper>

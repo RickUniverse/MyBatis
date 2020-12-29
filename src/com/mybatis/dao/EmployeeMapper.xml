@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mybatis.dao.EmployeeMapper">
+    <!--开启二级缓存
+        eviction:缓存回收策略，默认是LRU
+        flushInterval：刷新间隔，多长时间清空一次，默认是不清空，单位是毫秒
+        readOnly：是否只读
+        size：缓存中可以存储多少个对象
+    -->
+    <!--<cache eviction="FIFO" flushInterval="60000" readOnly="false" size="1024"/>-->
+    <!--使用第三方缓存提供者-->
+    <cache type="org.mybatis.caches.ehcache.EhcacheCache"/>
+
+    <!--
+        namespace: 名称空间,使用接口进行关联映射
+        id：唯一标识
+        resultType： 返回值类型
+        #{id} ： 从传递过来的参数中取出id值
+
+        useCache：是否使用缓存
+        flushCache：是否刷新缓存
+
+        select id,last_name lastName, gender, email from tb_employee where id = #{id}
+        如果已经配置了驼峰命名：select * from tb_employee where id = #{id}
+    -->
+    <select id="getEmployeeById" resultType="com.mybatis.entities.Employee"
+            databaseId="mysql"
+            useCache="true"
+            flushCache="false">
+
+        select * from tb_employee where id = #{id}
+    </select>
+
+
+
+    <!--
+        调用存储过程使用select标签
+        start，存储过程的参数，
+        mode=IN：参数方式，IN输入参数，OUT输出参数，
+        jdbcType：参数的类型，CURSOR游标
+        javaType=ResultSet: OUT输出ResultSet结果集
+        resultMap=procedureEmps: 封装规则
+    -->
+    <!--List<Employee> getPageByProcedure(Page page);-->
+    <select id="getPageByProcedure" statementType="CALLABLE"
+                databaseId="oracle"
+                useCache="false">
+        {call hello_test(
+            #{start,mode=IN,jdbcType=INTEGER},
+            #{end,mode=IN,jdbcType=INTEGER},
+            #{count,mode=OUT,jdbcType=INTEGER},
+            #{emps,mode=OUT,jdbcType=CURSOR,javaType=ResultSet,resultMap=procedureEmps}
+        )}
+    </select>
+    <resultMap id="procedureEmps" type="com.mybatis.entities.Employee">
+        <id column="id" property="id"/>
+        <result column="name" property="lastName"/>
+        <result column="email" property="email"/>
+    </resultMap>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <!--
+        多个参数使用命名参数@Param注解
+            查询时：返回结果的类型必须加，
+    -->
+    <select id="getEmployeeByIdAndLastName" databaseId="mysql" resultType="com.mybatis.entities.Employee">
+        select * from tb_employee where id = #{id} and last_name=#{lastName}
+    </select>
+    <!-- 如果参树是map则可以直接取值
+        严格区分大小写
+     -->
+    <select id="getEmployeeByMap" databaseId="mysql" resultType="com.mybatis.entities.Employee">
+        select * from ${tableName} where id = #{id} and last_name=#{lastName}
+    </select>
+
+    <!--返回list集合
+            resultType：是集合的泛型
+    -->
+    <select id="getListByLike" databaseId="mysql" resultType="com.mybatis.entities.Employee">
+        select * from tb_employee where last_name like #{lastName}
+    </select>
+    <!--返回Map集合:
+        方法：@MapKey("id")
+             Map<Integer,Employee> getEmployeeMapByLike(String lastName);
+            resultType：是value的全类名或别名
+    -->
+    <select id="getEmployeeMapByLike" databaseId="mysql" resultType="com.mybatis.entities.Employee">
+        select * from tb_employee where last_name like #{lastName}
+    </select>
+
+    <!--返回map集合:只返回一行记录
+        方法：Map<String,Object> getMapById(Integer id);
+            resultType：是集合的别名
+    -->
+    <select id="getMapById" databaseId="mysql" resultType="map">
+        select * from tb_employee where id=#{id}
+    </select>
+
+
+
+
+
+
+
+
+
+    <select id="getEmployeeById" resultType="com.mybatis.entities.Employee"
+        databaseId="oracle">
+
+        select ID, NAME lastName, EMAIL from EMPLOYEE_TABLE where id = #{id}
+    </select>
+
+    <!--
+    Integer updateEmployee(Employee employee);
+
+    Long addEmployee(Employee employee);
+
+    boolean deleteEmployee(Integer id);
+
+    parameterType： 参数类型,可以省略
+    -->
+    <!--修改
+    flushCache：修改后是否更新缓存
+    -->
+    <update id="updateEmployee" parameterType="com.mybatis.entities.Employee"
+            flushCache="false">
+        update tb_employee set last_name=#{lastName}, gender=#{gender}, email=#{email}
+            where id=#{id}
+    </update>
+
+    <!--删除-->
+    <delete id="deleteEmployee">
+        delete from tb_employee where id=#{id}
+    </delete>
+
+    <!--添加
+        useGeneratedKeys="true"：获取自增的主键策略，
+        keyProperty="id"：将获取添加生成的主键赋那个属性
+    -->
+    <insert id="addEmployee" useGeneratedKeys="true" keyProperty="id"
+            databaseId="mysql">
+        insert into tb_employee(last_name,gender,email,emp_state)
+        values(#{lastName},#{gender},#{email},#{empState,typeHandler=com.mybatis.typehandler.MyEnumTypeHandler})
+    </insert>
+
+    <!--
+        Oracle使用序列获取插入的主键列
+        selectKey:查出主键赋值给javabean的那个属性
+            keyProperty：那个属性
+            order:在insert插入之间还是之后
+            resultType：返回结果
+    -->
+    <insert id="addEmployee" databaseId="oracle">
+        <selectKey keyProperty="id"
+                   order="BEFORE"
+                   resultType="integer">
+            select EMPLOYEES_SEQ.nextval from dual
+        </selectKey>
+        insert into EMPLOYEE_TABLE(ID,NAME,EMAIL) values(#{id},#{lastName},#{email,jdbcType=NULL})
+    </insert>
+</mapper>

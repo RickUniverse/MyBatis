@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.mybatis.dao.EmployeeMapper">
+
+    <cache type="org.mybatis.caches.ehcache.EhcacheCache"/><!--这个地方总是会引用父项目中的包-->
+    <!-- Employee getEmployeeById(Integer id);
+
+    List<Employee> getEmployees();-->
+    <!-- Employee getEmployeeById(Integer id);-->
+    <select id="getEmployeeById" resultType="org.mybatis.entities.Employee">
+        select * from tb_employee where id = #{id}
+    </select>
+
+    <!--List<Employee> getEmployees();-->
+    <select id="getEmployees" resultType="org.mybatis.entities.Employee">
+        select * from tb_employee
+    </select>
+
+</mapper>
